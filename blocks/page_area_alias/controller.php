@@ -1,4 +1,4 @@
-<?php 
+<?php
 namespace Concrete\Package\EsitefulPageAreaAlias\Block\PageAreaAlias;
 
 use Concrete\Core\Block\BlockController;
@@ -11,19 +11,19 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 defined('C5_EXECUTE') or die("Access Denied.");
 
 class Controller extends BlockController {
-	
+
 	protected $btTable = 'btPageAreaAlias';
 	protected $btInterfaceWidth = "500";
 	protected $btInterfaceHeight = "470";
 	protected $btWrapperClass = 'ccm-ui';
 	protected $btCacheBlockRecord = true;
-	protected $btCacheBlockOutput = true;
+	protected $btCacheBlockOutput = false;
 	protected $btDefaultSet = '';
 
 	public function getBlockTypeName() {
 		return t("Page Area Alias");
 	}
-	
+
 	public function getBlockTypeDescription() {
 		return t("Block for displaying an area from another page.");
 	}
@@ -36,16 +36,16 @@ class Controller extends BlockController {
 		$error = Loader::helper('validation/error');
 		//if (trim($args['alertText']) == '') {
 		//	$error->add(t('Alert Text Required'));
-		//}		
+		//}
 		if($error->has()) {
 			return $error;
 		}
 	}
-		
+
 	public function add() {
 		$this->edit();
 	}
-	
+
 	public function edit() {
 		$blockTypes = BlockTypeList::getInstalledList();
 		$this->set('blockTypes', $blockTypes);
@@ -61,9 +61,9 @@ class Controller extends BlockController {
 
 	public function view() {
 		$this->set('aarHandle', $this->getAliasAreaHandle());
-	}	
-	
-	public function save($data){		
+	}
+
+	public function save($data){
 		foreach($data as $key=>$value) {
 			if($data === ''){
 				$data[$key] = null;
@@ -73,21 +73,21 @@ class Controller extends BlockController {
 		if($data['mode'] == 'inherit' || empty($data['mode'])){
 			$data['acID'] = NULL;
 			$data['actHandle'] = NULL;
-			
+
 		}else if($data['mode'] == 'page'){
 			$data['actHandle'] = NULL;
 		}else if($data['mode'] == 'page_type'){
 			$data['acID'] = NULL;
 		}
-		
+
 		if(empty($data['aarHandle'])){
-			$data['aarHandle'] = NULL;	
+			$data['aarHandle'] = NULL;
 		}
-		
+
 		if(empty($data['btRefHandles'])){
-			$data['btRefHandles']=NULL;	
+			$data['btRefHandles']=NULL;
 		}else if(is_array($data['btRefHandles'])){
-			$data['btRefHandles'] = implode(',', $data['btRefHandles']);	
+			$data['btRefHandles'] = implode(',', $data['btRefHandles']);
 		}
 		parent::save($data);
 	}
@@ -99,14 +99,14 @@ class Controller extends BlockController {
 		}
 		return $this->mode;
 	}
-	
+
 	public function getBlockTypeRefMode(){
 		if(empty($this->btRefMode)){
 			return 'exclude';
 		}
 		return $this->btRefMode;
 	}
-	
+
 	public function getBlockTypeRefHandles(){
 		if(!empty($this->btRefHandles)){
 			$ids = explode(',', $this->btRefHandles);
@@ -114,7 +114,7 @@ class Controller extends BlockController {
 		}
 		return NULL;
 	}
-	
+
 	public function getAliasCollectionID(){
 		if($this->getMode()=='inherit'){
 			$p = Page::getCurrentPage();
@@ -130,7 +130,7 @@ class Controller extends BlockController {
 		}
 		return NULL;
 	}
-	
+
 	public function getAliasCollection(){
 		$acID = $this->getAliasCollectionID();
 		if(!empty($acID)){
@@ -138,7 +138,7 @@ class Controller extends BlockController {
 		}
 		return NULL;
 	}
-	
+
 	public function getAliasAreaHandle(){
 		if(empty($this->aarHandle)){
 			//return handle of current area if none is set
@@ -146,44 +146,44 @@ class Controller extends BlockController {
 		}
 		return $this->aarHandle;
 	}
-	
+
 	public function getAliasCollectionBlocks($areaHandle=NULL){
-		
+
 		$c = $this->getAliasCollection();
 		if(is_null($areaHandle)){
-			$areaHandle = $this->getAliasAreaHandle();	
+			$areaHandle = $this->getAliasAreaHandle();
 		}
-		
+
 		if(is_object($c)){
 			return $c->getBlocks($areaHandle);
 		}
 		return NULL;
 	}
-	
+
 	public function filterBlocksByBlockType($types=NULL, $mode=NULL, $blocks=NULL){
 		if(is_string($types)){
 			$types = array($types);
 		}else if(is_null($types)){
-			$types = $this->getBlockTypeRefHandles();	
+			$types = $this->getBlockTypeRefHandles();
 		}
 		if(is_null($mode)){
-			$mode = $this->getBlockTypeRefMode();	
+			$mode = $this->getBlockTypeRefMode();
 		}
 		if(is_null($blocks)){
-			$blocks = $this->getAliasCollectionBlocks();	
+			$blocks = $this->getAliasCollectionBlocks();
 		}
 		$results = array();
-		
+
 		foreach($blocks as $block){
 			$isFiltered = is_array($types) && in_array($block->getBlockTypeHandle(), $types);
-			if(($mode == 'exclude' && !$isFiltered) || ($mode == 'include' && $isFiltered)){					
+			if(($mode == 'exclude' && !$isFiltered) || ($mode == 'include' && $isFiltered)){
 				$results[] = $block;
 			}
 		}
 		return $results;
 	}
-	
-	
+
+
 	function resolveInheritedAliasBlocks($blocks=NULL){
 		if(is_null($blocks)){
 			$blocks = $this->getAliasCollectionBlocks();
@@ -193,7 +193,7 @@ class Controller extends BlockController {
 			if($this->getBlockObject()->getBlockTypeHandle() == $block->getBlockTypeHandle()){
 				$inheritAreaHandle = $block->getInstance()->aarHandle;
 				if(empty($inheritAreaHandle)){
-					//The auto area handles are not getting loaded into the block object properly from within the controller. view->blockObj->arHandle has it, so not sure what's up with that.	
+					//The auto area handles are not getting loaded into the block object properly from within the controller. view->blockObj->arHandle has it, so not sure what's up with that.
 					$block->getInstance()->aarHandle = $this->getAliasAreaHandle();
 				}
 				if(!in_array($block->bID, $this->displayAncestors)){
@@ -203,16 +203,16 @@ class Controller extends BlockController {
 				//$this->pre($key);
 				array_splice($blocks, $key, 1, $inheritBlocks);
 				reset($blocks);
-				
-			}		
+
+			}
 		}
 		foreach($blocks as $block){
-			//echo $block->getBlockTypeHandle().' :';	
+			//echo $block->getBlockTypeHandle().' :';
 		}
 		return $blocks;
 	}
-	
-	
+
+
 	function getAliasBlocks($displayAncestors=array()){
 		$this->displayAncestors = $displayAncestors;
 		$blocks = $this->resolveInheritedAliasBlocks();
@@ -229,26 +229,26 @@ class Controller extends BlockController {
 
 	public function page_area_handles(){
 		$hlpJson = Loader::helper('json');
-	
+
 		$cID = isset($_REQUEST['cID']) ? $_REQUEST['cID'] : NULL;
-		
-		
+
+
 		$json['error'] = false;
 		$json['messages'] = array();
-		
+
 		if(empty($cID)){
 			$json['error'] = true;
-			$json['messages'][] = t('No collection ID was provided.');			
-		}	
+			$json['messages'][] = t('No collection ID was provided.');
+		}
 		//If there are errors, send them now
 		if($json['error']){
 			return new JsonResponse($json);
 		}
-		
+
 		//Otherwise, provide the options
 		$db = $this->app->make('database')->connection();
 		$arHandles = $db->fetchColumn('select arHandle from Areas where cID = ? order by arHandle', [$cID]);
-		
+
 		$json['arHandles'] = $arHandles;
 
 		return new JsonResponse($json);
